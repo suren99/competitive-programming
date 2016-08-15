@@ -1,4 +1,4 @@
-// Author-suren99
+//Author - suren99
 #include <bits/stdc++.h>
 #define ll long long
 #define mk make_pair
@@ -12,107 +12,55 @@
 #define rrep(i, a, b) for (int i = a; i >= b; i--)
 using namespace std;
 const ll mod = (ll)1e9 + 7;
-const int maxn = 2e5 + 5;
+const int maxn = 1e5 + 5;
 int n;
-int a[maxn], q;
-int cur;
-ll fact[maxn];
-ll inv[maxn];
-struct node {
-  int cnt;
-  node *left, *right;
-  node(int cnt, node *left, node *right) : cnt(cnt), left(left), right(right) {}
-  node *insert(int l, int r, int w);
-};
-node *root[maxn];
-node *node::insert(int l, int r, int w) {
-  if (w >= l and w <= r) {
-    if (l == r) {
-      return new node(this->cnt + 1, NULL, NULL);
-    }
-    int mid = (l + r) / 2;
-    return new node(this->cnt + 1, this->left->insert(l, mid, w),
-                    this->right->insert(mid + 1, r, w));
-  }
-  return this;
-}
-int query(node *u, node *v, int l, int r, int k) {
-  if (l == r) {
-    cur = k;
-    return l;
-  }
-  int mid = (l + r) / 2;
-  int count = u->left->cnt - v->left->cnt;
-  if (count >= k)
-    return query(u->left, v->left, l, mid, k);
-  else
-    return query(u->right, v->right, mid + 1, r, k - count);
-}
-int query1(node *u, node *v, int l, int r, int qs, int qe) {
-  if (qs > qe)
-    return 0;
-  if (l > qe or r < qs) {
-    return 0;
-  }
-  if (l >= qs and r <= qe) {
-    return u->cnt - v->cnt;
-  }
-  int mid = (l + r) / 2;
-  return query1(u->left, v->left, l, mid, qs, qe) +
-         query1(u->right, v->right, mid + 1, r, qs, qe);
-}
-node *null = new node(0, NULL, NULL);
-ll mdpw(ll base, ll pw) {
+ll k;
+int primes[3000001];
+ll num[10000001];
+ll inv(ll base, ll pw) {
   ll ans = 1;
   while (pw != 0) {
-    if (pw & 1)
+    if (pw & 1) {
       ans = (ans * base) % mod;
+    }
     base = (base * base) % mod;
     pw /= 2;
   }
   return ans;
 }
-ll C(int m, int r) {
-  if (r <= 0 || r > m)
-    return 0;
-  ll ans = fact[m];
-  ans = (ans * inv[m - r]) % mod;
-  ans = (ans * inv[r]) % mod;
-  return ans;
-}
 int main() {
   ios::sync_with_stdio(false);
-  std::cin >> n >> q;
-  fact[0] = 1;
-  rep(i, 1, n) fact[i] = (i * fact[i - 1]) % mod;
-  inv[n] = mdpw(fact[n], mod - 2);
-  rrep(i, n - 1, 0) inv[i] = ((i + 1) * inv[i + 1]) % mod;
-  map<int, int> m, m1;
-  rep(i, 1, n) {
-    std::cin >> a[i];
-    m[a[i]] = 1;
+  std::cin >> n >> k;
+  rep(i, 0, n - 1) {
+    int a;
+    std::cin >> a;
+    int tmp = a;
+    for (int j = 2; j * j <= a; j++) {
+      int cnt = 0;
+      while (tmp % j == 0) {
+        tmp /= j;
+        cnt++;
+      }
+      primes[j] += cnt;
+    }
+    if (tmp > 1)
+      primes[tmp]++;
   }
-  int mx = 0;
-  for (auto it = m.begin(); it != m.end(); it++) {
-    m[it->first] = mx;
-    m1[mx] = it->first;
-    mx++;
+  ll ans = 1;
+  ll den[k + 1];
+  den[0] = 1;
+  den[1] = 1;
+  num[0] = 1;
+  num[1] = 1;
+  rep(i, 2, k) den[i] = (den[i - 1] * i) % mod;
+  rep(i, 1, 10000000) num[i] = (num[i - 1] * i) % mod;
+  rep(i, 2, 3000000) {
+    if (primes[i] == 0)
+      continue;
+    ll num1 = num[primes[i] + k - 1];
+    num1 = (num1 * inv(num[primes[i]], mod - 2)) % mod;
+    ans = ((ans * num1) % mod * inv(den[k - 1], mod - 2)) % mod;
   }
-  mx--;
-  null->left = null;
-  null->right = null;
-  root[0] = null;
-  rep(i, 1, n) { root[i] = root[i - 1]->insert(0, mx, m[a[i]]); }
-  while (q--) {
-    int u, v, k;
-    std::cin >> u >> v >> k;
-    int ans = query(root[v], root[u - 1], 0, mx, k);
-    int less = query1(root[v], root[u - 1], 0, mx, 0, ans - 1);
-    int le = query1(root[v], root[u - 1], 0, mx, 0, ans);
-    int idx = less + cur;
-    int m = le - less;
-    int r = idx - less;
-    std::cout << C(m, r) << "\n";
-  }
+  std::cout << ans << "\n";
   return 0;
 }
