@@ -1,0 +1,67 @@
+#include <bits/stdc++.h>
+#define ll long long
+#define mk make_pair
+#define pb push_back
+#define x first
+#define y second
+#define pii pair<int, int>
+#define pll pair<ll, ll>
+#define inf (ll)1e18
+#define rep(i, a, b) for (int i = a; i <= b; ++i)
+#define rrep(i, a, b) for (int i = a; i >= b; i--)
+using namespace std;
+const int maxn = 1e5 + 5;
+const int mod = 1e9 + 7;
+int add(int a, int b) { return (a + b) % mod; }
+int mul(int a, int b) { return (1LL * a * b) % mod; }
+unordered_map<int, int> m[1001];
+int main() {
+  ios::sync_with_stdio(false);
+  string s;
+  std::cin >> s;
+  int n = (int)s.size();
+  int ansl = 0;
+  int ansi = 0;
+  rep(i, 1, n)//for all possible lengths
+  {
+    int win = 1;
+    rep(j, 1, i - 1) win = mul(win, 31);
+    int p = 0;
+    rep(j, 0, i - 1) p = add(mul(p, 31), s[j]);
+    m[0][i - 1] = p;
+    rep(j, i, n - 1) {
+      p -= mul(s[j - i], win);
+      if (p < mod)
+        p += mod;
+      p = add(mul(p, 31), s[j]);
+      m[j - i + 1][j] = p;
+    }
+  }
+  rrep(i, n, 1) {
+    int win = 1;
+    rep(j, 1, i - 1) win = mul(win, 31);
+    int p = 0;
+    int fl = 0;
+    rrep(j, n - 1, n - i) { p = add(mul(p, 31), s[j]); }
+    if (m[n - i][n - 1] == p) {
+      ansl = i;
+      ansi = n - i;
+      fl = 1;
+    }
+    rrep(j, n - i - 1, 0) {
+      p -= mul(s[j + i], win);
+      if (p < mod)
+        p += mod;
+      p = add(s[j], mul(p, 31));
+      if (m[j][j + i - 1] == p) {
+        ansl = i;
+        ansi = j;
+        fl = 1;
+      }
+    }
+    if (fl)
+      break;
+  }
+  std::cout << s.substr(ansi, ansl);
+  return 0;
+}
